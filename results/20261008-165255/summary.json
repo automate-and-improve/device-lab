@@ -1,0 +1,64 @@
+{
+ "id": "20261008-165255",
+ "url": "https://automate-and-improve.github.io/",
+ "platforms": [
+  {
+   "platform": "windows-edge",
+   "label": "Windows Edge",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "windows-chrome",
+   "label": "Windows Chrome",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "windows-firefox",
+   "label": "Windows Firefox",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "windows-chrome-phone",
+   "label": "Windows Chrome, phone size",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  }
+ ],
+ "missing": [
+  "mac-safari",
+  "mac-webkit-iphone",
+  "ios-sim",
+  "android"
+ ]
+}
