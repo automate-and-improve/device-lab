@@ -85,8 +85,11 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: |
+          set +e   # every step logs its result instead of stopping silently; the last line decides success
           mkdir -p out/android; LOG=out/android/setup.log
           SDK="$ANDROID_HOME/cmdline-tools/latest/bin"; ADB="$ANDROID_HOME/platform-tools/adb"
+          # One folder for the virtual phone: avdmanager and the emulator default to different ones in newer tools.
+          export ANDROID_AVD_HOME="$HOME/.android/avd"; mkdir -p "$ANDROID_AVD_HOME"; echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
           echo "kvm: $(ls -l /dev/kvm 2>&1)" >> $LOG
           yes | "$SDK/sdkmanager" --licenses > /dev/null 2>&1 || true
           echo "$(date +%T) downloading system image" >> $LOG
@@ -94,6 +97,7 @@ jobs:
           echo "$(date +%T) download exit $?" >> $LOG
           "$ANDROID_HOME/emulator/emulator" -accel-check >> $LOG 2>&1 || true
           echo no | "$SDK/avdmanager" create avd -n lab -k "system-images;android-34;google_apis_playstore;x86_64" -d pixel_7 >> $LOG 2>&1
+          echo "$(date +%T) phones: $("$ANDROID_HOME/emulator/emulator" -list-avds 2>&1 | tr '\n' ' ')" >> $LOG
           "$ANDROID_HOME/emulator/emulator" -avd lab -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect > out/android/emulator.log 2>&1 &
           echo "$(date +%T) emulator started" >> $LOG
           timeout 120 "$ADB" wait-for-device; echo "$(date +%T) device visible: exit $?" >> $LOG
@@ -107,7 +111,7 @@ jobs:
           if [ "${{ steps.emu.outcome }}" = "success" ]; then
             node lab/run-platform.js android "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
           else
-            node -e "const fs=require('fs');const log=fs.existsSync('out/android/setup.log')?fs.readFileSync('out/android/setup.log','utf8').split('\n').slice(-12).join(' / '):'no log';fs.mkdirSync('out/android',{recursive:true});fs.writeFileSync('out/android/result.json',JSON.stringify({platform:'android',label:'Android emulator (Chrome)',results:[{step:'start',name:'emulator booted',ok:false,detail:log.slice(0,600)}],screenshots:[],notes:[]}))"
+            node -e "const fs=require('fs');const rd=f=>fs.existsSync(f)?fs.readFileSync(f,'utf8').split(/[\r\n]+/).filter(l=>/^\d\d:\d\d|ERROR|kvm|KVM|phones/.test(l)).slice(-10).join(' / '):'';const log=(rd('out/android/setup.log')+' / '+rd('out/android/emulator.log'))||'no log';fs.mkdirSync('out/android',{recursive:true});fs.writeFileSync('out/android/result.json',JSON.stringify({platform:'android',label:'Android emulator (Chrome)',results:[{step:'start',name:'emulator booted',ok:false,detail:log.slice(0,600)}],screenshots:[],notes:[]}))"
           fi
       - uses: actions/upload-artifact@v6
         if: always()
