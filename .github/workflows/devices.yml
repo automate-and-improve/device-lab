@@ -1,0 +1,114 @@
+# Device lab: runs when a run request (requests/<id>.json) is pushed. Windows, macOS (+ iPhone simulator) and Android
+# in parallel; the report job writes results + screenshots to the `results` branch (results/<id>/).
+# Only GitHub's own actions (actions/*). Public repo: no secrets, only public URLs.
+name: devices
+on:
+  push:
+    branches: [main]
+    paths: ['requests/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: devices
+  cancel-in-progress: false
+
+jobs:
+  request:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.r.outputs.id }}
+      url: ${{ steps.r.outputs.url }}
+      checks: ${{ steps.r.outputs.checks }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: r
+        run: |
+          f=$(ls -1 requests/*.json | sort | tail -1)
+          echo "id=$(node -p "require('./$f').id")" >> "$GITHUB_OUTPUT"
+          echo "url=$(node -p "require('./$f').url")" >> "$GITHUB_OUTPUT"
+          echo "checks=$(node -p "require('./$f').checks || 'generic'")" >> "$GITHUB_OUTPUT"
+
+  windows:
+    needs: request
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install firefox
+      - shell: bash
+        run: |
+          for p in windows-edge windows-chrome windows-firefox windows-chrome-phone; do
+            node lab/run-platform.js $p "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
+          done
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: out }
+
+  macos:
+    needs: request
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install webkit
+      - run: |
+          for p in mac-safari mac-webkit-iphone ios-sim; do
+            node lab/run-platform.js $p "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
+          done
+      - uses: actions/upload-artifact@v4
+        with: { name: macos, path: out }
+
+  android:
+    needs: request
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - run: npm ci --ignore-scripts
+      - name: Enable hardware acceleration for the Android emulator (KVM)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Start an Android emulator (Pixel, Android 14, with Chrome)
+        run: |
+          SDK="$ANDROID_HOME/cmdline-tools/latest/bin"
+          yes | "$SDK/sdkmanager" --licenses > /dev/null
+          "$SDK/sdkmanager" "emulator" "platform-tools" "system-images;android-34;google_apis_playstore;x86_64" > /dev/null
+          echo no | "$SDK/avdmanager" create avd -n lab -k "system-images;android-34;google_apis_playstore;x86_64" -d pixel_7
+          "$ANDROID_HOME/emulator/emulator" -avd lab -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect &
+          "$ANDROID_HOME/platform-tools/adb" wait-for-device
+          for i in $(seq 1 90); do [ "$("$ANDROID_HOME/platform-tools/adb" shell getprop sys.boot_completed | tr -d '\r')" = "1" ] && break; sleep 5; done
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+      - run: node lab/run-platform.js android "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: android, path: out }
+
+  report:
+    needs: [request, windows, macos, android]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: collected }
+      - name: Summary + publish to the results branch
+        run: |
+          id="${{ needs.request.outputs.id }}"
+          node lab/summarize.js collected "$id" "${{ needs.request.outputs.url }}" > summary.md
+          git config user.name "device-lab"; git config user.email "device-lab@users.noreply.github.com"
+          git fetch origin results || true
+          if git rev-parse --verify origin/results >/dev/null 2>&1; then git checkout -B results origin/results; else git checkout --orphan results; git rm -rf . > /dev/null; fi
+          mkdir -p "results/$id"; cp -r collected/*/* "results/$id/" 2>/dev/null || true; cp summary.md summary.json "results/$id/"
+          git add "results/$id"; git commit -m "results $id"; git push origin results

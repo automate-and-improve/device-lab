@@ -2,3 +2,7 @@
 .env
 .env.*
 !.env.example
+
+# local copies of run results (screenshots)
+runs/
+node_modules/

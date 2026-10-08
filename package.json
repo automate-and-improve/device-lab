@@ -1,0 +1,6 @@
+{
+  "name": "device-lab",
+  "private": true,
+  "description": "Test websites and apps on Windows, macOS + Safari, iPhone simulator and Android (GitHub Actions). Playwright pinned (verified Microsoft package, 2026-10-08).",
+  "devDependencies": { "playwright": "1.63.0" }
+}
