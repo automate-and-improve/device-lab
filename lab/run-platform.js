@@ -43,7 +43,9 @@ const PLATFORMS = {
     if (d.errors && d.errors.length) result.results.push({ step: 'page', name: 'no script errors on the page', ok: false, detail: d.errors.slice(0, 3).join(' | ') });
   } catch (e) {
     result.results.push({ step: 'start', name: 'platform started and page opened', ok: false, detail: String(e.message || e).slice(0, 300) });
+    try { if (d) { await d.screenshot(path.join(dir, 'failed.png')); result.screenshots.push('failed.png'); } } catch (e2) {}   // what the screen showed
   } finally {
+    if (d && d.notes && d.notes.length) result.notes.push(...d.notes);
     try { d && await d.close(); } catch (e) {}
     result.finished = new Date().toISOString();
     save();

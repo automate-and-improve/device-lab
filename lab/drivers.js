@@ -67,18 +67,35 @@ async function android({ label = 'Android emulator (Chrome)' }) {
   adb(`shell "echo 'chrome --disable-fre --no-default-browser-check --no-first-run' > /data/local/tmp/chrome-command-line"`);
   adb('shell am set-debug-app --persistent com.android.chrome');
   return {
-    label, errors: [],
+    label, errors: [], notes: [],
     _ws: null, _id: 0, _wait: {},
     async open(url) {
-      adb(`shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d "${url}"`);
-      await sleep(8000);
+      const start = () => adb(`shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d "${url}"`);
+      start();
+      await sleep(6000);
+      // A brand-new phone shows Chrome's welcome screens first: tap through them like a person would.
+      const FRE = /Accept & continue|Use without an account|No thanks|No, thanks|Got it|Continue|Skip|More|Done/;
+      let tapped = 0;
+      for (let i = 0; i < 12; i++) {
+        let xml = '';
+        try { adb('shell uiautomator dump /sdcard/ui.xml'); xml = adb('shell cat /sdcard/ui.xml'); } catch (e) {}
+        const nodes = [...xml.matchAll(/text="([^"]*)"[^>]*?clickable="true"[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g)]
+          .concat([...xml.matchAll(/text="([^"]*)"[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g)]);
+        const hit = nodes.find(m => FRE.test(m[1]) && m[1].length < 40);
+        if (!hit) break;
+        const x = Math.round((+hit[2] + +hit[4]) / 2), y = Math.round((+hit[3] + +hit[5]) / 2);
+        adb(`shell input tap ${x} ${y}`); tapped++;
+        this.notes.push('tapped Chrome welcome button: ' + hit[1]);
+        await sleep(2500);
+      }
+      if (tapped) { start(); await sleep(6000); }
       adb('forward tcp:9222 localabstract:chrome_devtools_remote');
-      let target;
+      let target, pages = [];
       for (let i = 0; i < 30 && !target; i++) {
-        try { target = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(t => t.type === 'page' && t.url.startsWith(url.split('#')[0].slice(0, 30))); } catch (e) {}
+        try { pages = (await (await fetch('http://127.0.0.1:9222/json')).json()).filter(t => t.type === 'page'); target = pages.find(t => t.url.startsWith(url.split('#')[0].slice(0, 30))); } catch (e) {}
         if (!target) await sleep(2000);
       }
-      if (!target) throw new Error('Chrome page not found over DevTools');
+      if (!target) throw new Error('Chrome page not found over DevTools (open pages: ' + pages.map(p => p.url.slice(0, 60)).join(', ') + ')');
       this._ws = new WebSocket(target.webSocketDebuggerUrl);
       await new Promise((r, j) => { this._ws.onopen = r; this._ws.onerror = j; });
       this._ws.onmessage = m => { const d = JSON.parse(m.data); if (this._wait[d.id]) { this._wait[d.id](d); delete this._wait[d.id]; } };
