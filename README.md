@@ -5,7 +5,9 @@ Test any public website on 8 platforms at once, with screenshots, on GitHub's fr
 ```
 node run.js <public https URL> [checks]        # e.g.  node run.js https://automate-and-improve.github.io/ intake
 ```
-Takes ~10-15 minutes (macOS machines sometimes queue). Prints a table and saves screenshots to `runs/<id>/<platform>/` (not in git; the full copy is on the `results` branch).
+Takes ~10-15 minutes (macOS machines sometimes queue). Prints a table and saves screenshots to `runs/<id>/<site>/<platform>/` (not in git; the full copy is on the `results` branch).
+
+**Nightly**: every night at 06:30 (Slovenian summer time) the sites in `nightly.json` are tested on all platforms. If anything fails, the run is marked failed and GitHub emails the owner (GitHub's default for failed scheduled runs). Add a site = one line in `nightly.json` (public sites only).
 
 | Platform | What it really is | Steered? |
 |---|---|---|
@@ -13,12 +15,12 @@ Takes ~10-15 minutes (macOS machines sometimes queue). Prints a table and saves 
 | Windows Chrome, phone size | Chrome with a Pixel-size screen and touch | yes |
 | macOS Safari | real Safari 26 on macOS 15 via Apple's safaridriver | yes |
 | macOS WebKit as iPhone | Safari's engine with an iPhone screen (Playwright) | yes |
-| iPhone simulator | real Mobile Safari on an iPhone 16 simulator (iOS 26) | screenshot only |
+| iPhone simulator | real Mobile Safari on an iPhone simulator (iOS 26) via Apple's safaridriver; also a whole-phone screenshot per step | yes (falls back to screenshots only) |
 | Android emulator | real Chrome on an Android 14 Pixel emulator (Chrome DevTools) | yes |
 
 **Checks**: `lab/checks.js` (generic, every page: title, no sideways scroll, no broken images, tap targets, readable text) + `checks/<project>.js` (a walk through the page: action → screenshot → checks). Add a file per project. Everything runs as JavaScript inside the page.
 
-**Machines can't see**: the "Allow microphone?" popup, the phone's own file/camera sheets, links opened inside WhatsApp/Viber, real camera/mic. Keep a 5-minute real-phone check for launches.
+**Machines can't see**: the "Allow microphone?" popup, the phone's own file/camera sheets, links opened inside WhatsApp/Viber, real camera/mic. Keep a 5-minute real-phone check for launches: `REAL-PHONE-CHECKLIST.md`.
 
 **Rules**: public repo = free minutes, so never put secrets, client data, names or private URLs here. Only official GitHub actions (`actions/*`) and Playwright (Microsoft), pinned.
 

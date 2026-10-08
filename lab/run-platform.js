@@ -14,7 +14,7 @@ const PLATFORMS = {
   'windows-chrome-phone': () => drivers.playwright({ browser: 'chromium', channel: 'chrome', device: 'Pixel 7', label: 'Windows Chrome, phone size' }),
   'mac-safari': () => drivers.safari({}),
   'mac-webkit-iphone': () => drivers.playwright({ browser: 'webkit', device: 'iPhone 15', label: 'macOS WebKit as iPhone (interactive)' }),
-  'ios-sim': () => drivers.iosSim({}),
+  'ios-sim': () => drivers.iosSafari({}),
   'android': () => drivers.android({}),
 };
 
@@ -36,6 +36,8 @@ const PLATFORMS = {
         if (d.dismissPopups) await d.dismissPopups();   // the browser's own pop-ups, not the page under test
         const shot = step.name + '.png';
         await d.screenshot(path.join(dir, shot)); result.screenshots.push(shot);
+        const phone = shot.replace(/\.png$/, '-phone.png');   // iPhone: the whole screen incl. Safari's bars
+        if (fs.existsSync(path.join(dir, phone))) result.screenshots.push(phone);
         if (d.screenshotOnly) { if (i === 0) result.notes.push('screenshot only: Mobile Safari in the simulator can be looked at, not steered'); break; }
         for (const c of await d.evaluate(step.check)) result.results.push({ step: step.name, ...c });
         if (i === 0) for (const c of await d.evaluate(generic)) result.results.push({ step: 'generic', ...c });

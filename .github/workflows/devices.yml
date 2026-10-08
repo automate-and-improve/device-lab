@@ -1,5 +1,6 @@
-# Device lab: runs when a run request (requests/<id>.json) is pushed. Windows, macOS (+ iPhone simulator) and Android
-# in parallel; the report job writes results + screenshots to the `results` branch (results/<id>/).
+# Device lab: runs when a run request (requests/<id>.json) is pushed, and every night for the sites in nightly.json.
+# Windows, macOS (+ iPhone simulator) and Android in parallel; the report job writes results + screenshots to the
+# `results` branch (results/<id>/<site>/<platform>/). A nightly run with any failure is marked failed -> GitHub emails.
 # Only GitHub's own actions (actions/*). Public repo: no secrets, only public URLs.
 name: devices
 on:
@@ -7,6 +8,8 @@ on:
     branches: [main]
     paths: ['requests/**']
   workflow_dispatch:
+  schedule:
+    - cron: '30 4 * * *'   # 04:30 UTC = 06:30 in Slovenia (summer time)
 
 permissions:
   contents: write
@@ -20,16 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       id: ${{ steps.r.outputs.id }}
-      url: ${{ steps.r.outputs.url }}
-      checks: ${{ steps.r.outputs.checks }}
+      nightly: ${{ steps.r.outputs.nightly }}
     steps:
       - uses: actions/checkout@v7
       - id: r
         run: |
-          f=$(ls -1 requests/*.json | sort | tail -1)
-          echo "id=$(node -p "require('./$f').id")" >> "$GITHUB_OUTPUT"
-          echo "url=$(node -p "require('./$f').url")" >> "$GITHUB_OUTPUT"
-          echo "checks=$(node -p "require('./$f').checks || 'generic'")" >> "$GITHUB_OUTPUT"
+          node lab/targets.js > targets.json && cat targets.json
+          echo "id=$(node -p "require('./targets.json').id")" >> "$GITHUB_OUTPUT"
+          echo "nightly=$(node -p "require('./targets.json').nightly")" >> "$GITHUB_OUTPUT"
 
   windows:
     needs: request
@@ -41,11 +42,7 @@ jobs:
         with: { node-version: '24' }
       - run: npm ci --ignore-scripts
       - run: npx playwright install firefox
-      - shell: bash
-        run: |
-          for p in windows-edge windows-chrome windows-firefox windows-chrome-phone; do
-            node lab/run-platform.js $p "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
-          done
+      - run: node lab/run-all.js windows-edge windows-chrome windows-firefox windows-chrome-phone
       - uses: actions/upload-artifact@v6
         with: { name: windows, path: out }
 
@@ -59,10 +56,7 @@ jobs:
         with: { node-version: '24' }
       - run: npm ci --ignore-scripts
       - run: npx playwright install webkit
-      - run: |
-          for p in mac-safari mac-webkit-iphone ios-sim; do
-            node lab/run-platform.js $p "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
-          done
+      - run: node lab/run-all.js mac-safari mac-webkit-iphone ios-sim
       - uses: actions/upload-artifact@v6
         with: { name: macos, path: out }
 
@@ -86,7 +80,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e   # every step logs its result instead of stopping silently; the last line decides success
-          mkdir -p out/android; LOG=out/android/setup.log
+          mkdir -p out/_android; LOG=out/_android/setup.log
           SDK="$ANDROID_HOME/cmdline-tools/latest/bin"; ADB="$ANDROID_HOME/platform-tools/adb"
           # One folder for the virtual phone: avdmanager and the emulator default to different ones in newer tools.
           export ANDROID_AVD_HOME="$HOME/.android/avd"; mkdir -p "$ANDROID_AVD_HOME"; echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
@@ -98,7 +92,7 @@ jobs:
           "$ANDROID_HOME/emulator/emulator" -accel-check >> $LOG 2>&1 || true
           echo no | "$SDK/avdmanager" create avd -n lab -k "system-images;android-34;google_apis_playstore;x86_64" -d pixel_7 >> $LOG 2>&1
           echo "$(date +%T) phones: $("$ANDROID_HOME/emulator/emulator" -list-avds 2>&1 | tr '\n' ' ')" >> $LOG
-          "$ANDROID_HOME/emulator/emulator" -avd lab -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect > out/android/emulator.log 2>&1 &
+          "$ANDROID_HOME/emulator/emulator" -avd lab -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect > out/_android/emulator.log 2>&1 &
           echo "$(date +%T) emulator started" >> $LOG
           timeout 120 "$ADB" wait-for-device; echo "$(date +%T) device visible: exit $?" >> $LOG
           booted=0; for i in $(seq 1 60); do [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ] && booted=1 && break; sleep 5; done
@@ -106,13 +100,9 @@ jobs:
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           [ "$booted" = "1" ]
       - name: Test in Android Chrome
-        timeout-minutes: 8
+        timeout-minutes: 15
         run: |
-          if [ "${{ steps.emu.outcome }}" = "success" ]; then
-            node lab/run-platform.js android "${{ needs.request.outputs.url }}" "${{ needs.request.outputs.checks }}" out
-          else
-            node -e "const fs=require('fs');const rd=f=>fs.existsSync(f)?fs.readFileSync(f,'utf8').split(/[\r\n]+/).filter(l=>/^\d\d:\d\d|ERROR|kvm|KVM|phones/.test(l)).slice(-10).join(' / '):'';const log=(rd('out/android/setup.log')+' / '+rd('out/android/emulator.log'))||'no log';fs.mkdirSync('out/android',{recursive:true});fs.writeFileSync('out/android/result.json',JSON.stringify({platform:'android',label:'Android emulator (Chrome)',results:[{step:'start',name:'emulator booted',ok:false,detail:log.slice(0,600)}],screenshots:[],notes:[]}))"
-          fi
+          if [ "${{ steps.emu.outcome }}" = "success" ]; then node lab/run-all.js android; else node lab/emulator-failed.js; fi
       - uses: actions/upload-artifact@v6
         if: always()
         with: { name: android, path: out }
@@ -128,9 +118,12 @@ jobs:
       - name: Summary + publish to the results branch
         run: |
           id="${{ needs.request.outputs.id }}"
-          node lab/summarize.js collected "$id" "${{ needs.request.outputs.url }}" > summary.md
+          node lab/summarize.js collected "$id" > summary.md
           git config user.name "device-lab"; git config user.email "device-lab@users.noreply.github.com"
           git fetch origin results || true
           if git rev-parse --verify origin/results >/dev/null 2>&1; then git checkout -B results origin/results; else git checkout --orphan results; git rm -rf . > /dev/null; fi
           mkdir -p "results/$id"; cp -r collected/*/* "results/$id/" 2>/dev/null || true; cp summary.md summary.json "results/$id/"
           git add "results/$id"; git commit -m "results $id"; git push origin results
+      - name: A nightly run fails when anything failed (GitHub then emails the owner)
+        if: needs.request.outputs.nightly == 'true'
+        run: node -e "const s=require('./summary.json'); if (s.failed) { console.log(s.failed + ' problem(s), see results/${{ needs.request.outputs.id }}/summary.md on the results branch'); process.exit(1); }"

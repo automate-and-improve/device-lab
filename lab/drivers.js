@@ -2,7 +2,7 @@
 //   { label, open(url), evaluate(js) -> value, screenshot(file), close() }
 // - playwright: Chromium / Edge / Firefox / WebKit (Microsoft's Playwright, pinned in package.json)
 // - safari:     real Safari on macOS through Apple's own safaridriver (W3C WebDriver, plain HTTP)
-// - ios-sim:    real Mobile Safari in Apple's iPhone simulator (xcrun simctl): open + screenshot only
+// - ios-sim:    real Mobile Safari in Apple's iPhone simulator, steered by Apple's safaridriver (falls back to screenshots)
 // - android:    Chrome in Google's Android emulator through Chrome DevTools (adb forward + WebSocket)
 const { execSync, spawn } = require('child_process');
 const fs = require('fs');
@@ -24,25 +24,49 @@ async function playwright({ browser = 'chromium', channel, device, label }) {
   };
 }
 
-async function safari({ label = 'macOS Safari' }) {
+async function safari({ label = 'macOS Safari', caps = { browserName: 'safari' }, desktop = true, port = 4444 }) {
   execSync('sudo safaridriver --enable');
-  const port = 4444, proc = spawn('safaridriver', ['-p', String(port)], { stdio: 'ignore' });
+  const proc = spawn('safaridriver', ['-p', String(port)], { stdio: 'ignore' });
   await sleep(1500);
   const base = `http://127.0.0.1:${port}`;
   const wd = async (method, path, body) => {
     const r = await fetch(base + path, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
     const j = await r.json(); if (j.value && j.value.error) throw new Error(j.value.error + ': ' + j.value.message); return j.value;
   };
-  const s = await wd('POST', '/session', { capabilities: { alwaysMatch: { browserName: 'safari' } } });
+  let s;
+  try { s = await wd('POST', '/session', { capabilities: { alwaysMatch: caps } }); } catch (e) { proc.kill(); throw e; }
   const id = s.sessionId;
-  await wd('POST', `/session/${id}/window/rect`, { width: 1366, height: 900 });
+  if (desktop) await wd('POST', `/session/${id}/window/rect`, { width: 1366, height: 900 });
   return {
-    label, errors: [],
+    label, errors: [], wd, id,
     open: url => wd('POST', `/session/${id}/url`, { url }),
     evaluate: js => wd('POST', `/session/${id}/execute/sync`, { script: 'return eval(arguments[0]);', args: [js] }),
     screenshot: async file => fs.writeFileSync(file, Buffer.from(await wd('GET', `/session/${id}/screenshot`), 'base64')),
     close: async () => { try { await wd('DELETE', `/session/${id}`); } catch (e) {} proc.kill(); },
   };
+}
+
+// iPhone: real Mobile Safari in Apple's simulator, steered by Apple's own safaridriver ('safari:useSimulator').
+// Each screenshot is taken twice: the page (WebDriver) and the whole phone screen incl. Safari's bars (simctl).
+// If Apple's driver can't steer the simulator, it falls back to screenshot-only (iosSim below) and says so.
+async function iosSafari({ label = 'iPhone simulator (Mobile Safari)' }) {
+  try {
+    const d = await safari({ label, desktop: false, port: 4445,
+      caps: { browserName: 'safari', platformName: 'iOS', 'safari:useSimulator': true, 'safari:deviceType': 'iPhone' } });
+    let dev = '';
+    try { dev = execSync('xcrun simctl list devices booted').toString().match(/^\s+(iPhone[^(]*)\(/m)[1].trim(); } catch (e) {}
+    d.label = label + (dev ? ' - ' + dev : '') + ' (steered)';
+    const pageShot = d.screenshot;
+    d.screenshot = async file => {
+      await pageShot(file);
+      try { execSync(`xcrun simctl io booted screenshot "${file.replace(/\.png$/, '-phone.png')}"`); } catch (e) {}
+    };
+    return d;
+  } catch (e) {
+    const d = await iosSim({ label });
+    d.notes = ['Apple\'s driver could not steer the simulator (' + String(e.message).slice(0, 160) + '): screenshot only'];
+    return d;
+  }
 }
 
 async function iosSim({ device = 'iPhone 16', label = 'iPhone simulator (Mobile Safari)' }) {
@@ -117,4 +141,4 @@ async function android({ label = 'Android emulator (Chrome)' }) {
   };
 }
 
-module.exports = { playwright, safari, iosSim, android };
+module.exports = { playwright, safari, iosSafari, iosSim, android };
