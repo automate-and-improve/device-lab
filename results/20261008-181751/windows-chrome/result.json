@@ -1,0 +1,90 @@
+{
+ "platform": "windows-chrome",
+ "url": "https://automate-and-improve.github.io/",
+ "checks": "intake",
+ "started": "2026-10-08T18:18:59.392Z",
+ "label": "Windows Chrome",
+ "results": [
+  {
+   "step": "1-welcome",
+   "name": "own title, not inside Google",
+   "ok": true,
+   "detail": "Jan L. · Katero delo vam ali vaši ekipi vsak teden pobere ur"
+  },
+  {
+   "step": "1-welcome",
+   "name": "start button visible",
+   "ok": true
+  },
+  {
+   "step": "generic",
+   "name": "page has a title",
+   "ok": true,
+   "detail": "Jan L. · Katero delo vam ali vaši ekipi vsak teden pobere ure?"
+  },
+  {
+   "step": "generic",
+   "name": "no sideways scrolling",
+   "ok": true,
+   "detail": "1366 vs 1366"
+  },
+  {
+   "step": "generic",
+   "name": "no broken images",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "generic",
+   "name": "tap targets not tiny (< 24 px)",
+   "ok": true,
+   "detail": "0 small: "
+  },
+  {
+   "step": "generic",
+   "name": "readable text (not under 12 px)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "2-path",
+   "name": "\"fix\" and \"idea\" choices shown",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "record button shown",
+   "ok": true,
+   "detail": "🎙️ Raje povejte? Posnemite glasovno sporočilo Tapnite za začetek snemanja"
+  },
+  {
+   "step": "3-problem",
+   "name": "photo button says photos (not files)",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "photo picker asks for photos only",
+   "ok": true,
+   "detail": "image/*"
+  },
+  {
+   "step": "3-problem",
+   "name": "no visible text offers video",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "browser can record voice in the page",
+   "ok": true,
+   "detail": "function"
+  }
+ ],
+ "screenshots": [
+  "1-welcome.png",
+  "2-path.png",
+  "3-problem.png"
+ ],
+ "notes": [],
+ "finished": "2026-10-08T18:19:12.852Z"
+}
