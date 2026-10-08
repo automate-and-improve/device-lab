@@ -69,26 +69,32 @@ async function android({ label = 'Android emulator (Chrome)' }) {
   return {
     label, errors: [], notes: [],
     _ws: null, _id: 0, _wait: {},
+    // Chrome's own welcome screens and pop-ups (not our page): tap them away like a person would, preferring
+    // "no" answers. Called after opening and before every screenshot. Returns how many were tapped.
+    async dismissPopups() {
+      const PREFER = [/^No thanks$/, /^No, thanks$/, /^Use without an account$/, /^Not now$/, /^Accept & continue$/, /^Got it$/, /^Skip$/, /^Done$/, /^Continue$/];
+      let tapped = 0;
+      for (let i = 0; i < 10; i++) {
+        let xml = '';
+        try { adb('shell uiautomator dump /sdcard/ui.xml'); xml = adb('shell cat /sdcard/ui.xml'); } catch (e) {}
+        // only Chrome's own interface (resource ids of com.android.chrome), never buttons inside our web page
+        const nodes = [...xml.matchAll(/<node [^>]*>/g)].map(m => m[0]).filter(n => /resource-id="com\.android\.chrome:id\//.test(n))
+          .map(n => ({ text: (n.match(/ text="([^"]*)"/) || [])[1] || '', b: (n.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/) || []).slice(1).map(Number) }))
+          .filter(n => n.text && n.b.length === 4);
+        let hit = null;
+        for (const re of PREFER) { hit = nodes.find(n => re.test(n.text)); if (hit) break; }
+        if (!hit) break;
+        adb(`shell input tap ${Math.round((hit.b[0] + hit.b[2]) / 2)} ${Math.round((hit.b[1] + hit.b[3]) / 2)}`);
+        tapped++; this.notes.push('tapped Chrome pop-up: ' + hit.text);
+        await sleep(2000);
+      }
+      return tapped;
+    },
     async open(url) {
       const start = () => adb(`shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d "${url}"`);
       start();
       await sleep(6000);
-      // A brand-new phone shows Chrome's welcome screens first: tap through them like a person would.
-      const FRE = /Accept & continue|Use without an account|No thanks|No, thanks|Got it|Continue|Skip|More|Done/;
-      let tapped = 0;
-      for (let i = 0; i < 12; i++) {
-        let xml = '';
-        try { adb('shell uiautomator dump /sdcard/ui.xml'); xml = adb('shell cat /sdcard/ui.xml'); } catch (e) {}
-        const nodes = [...xml.matchAll(/text="([^"]*)"[^>]*?clickable="true"[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g)]
-          .concat([...xml.matchAll(/text="([^"]*)"[^>]*?bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g)]);
-        const hit = nodes.find(m => FRE.test(m[1]) && m[1].length < 40);
-        if (!hit) break;
-        const x = Math.round((+hit[2] + +hit[4]) / 2), y = Math.round((+hit[3] + +hit[5]) / 2);
-        adb(`shell input tap ${x} ${y}`); tapped++;
-        this.notes.push('tapped Chrome welcome button: ' + hit[1]);
-        await sleep(2500);
-      }
-      if (tapped) { start(); await sleep(6000); }
+      if (await this.dismissPopups()) { start(); await sleep(6000); await this.dismissPopups(); }
       adb('forward tcp:9222 localabstract:chrome_devtools_remote');
       let target, pages = [];
       for (let i = 0; i < 30 && !target; i++) {

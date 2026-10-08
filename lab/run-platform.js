@@ -33,6 +33,7 @@ const PLATFORMS = {
     for (const [i, step] of steps.entries()) {
       try {
         if (step.act && !d.screenshotOnly) { await d.evaluate(step.act); await sleep(1800); }
+        if (d.dismissPopups) await d.dismissPopups();   // the browser's own pop-ups, not the page under test
         const shot = step.name + '.png';
         await d.screenshot(path.join(dir, shot)); result.screenshots.push(shot);
         if (d.screenshotOnly) { if (i === 0) result.notes.push('screenshot only: Mobile Safari in the simulator can be looked at, not steered'); break; }
