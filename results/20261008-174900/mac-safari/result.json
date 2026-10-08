@@ -1,0 +1,90 @@
+{
+ "platform": "mac-safari",
+ "url": "https://automate-and-improve.github.io/",
+ "checks": "intake",
+ "started": "2026-10-08T17:49:45.038Z",
+ "label": "macOS Safari",
+ "results": [
+  {
+   "step": "1-welcome",
+   "name": "own title, not inside Google",
+   "detail": "Jan L. · Katero delo vam ali vaši ekipi vsak teden pobere ur",
+   "ok": true
+  },
+  {
+   "step": "1-welcome",
+   "name": "start button visible",
+   "ok": true
+  },
+  {
+   "step": "generic",
+   "name": "page has a title",
+   "detail": "Jan L. · Katero delo vam ali vaši ekipi vsak teden pobere ure?",
+   "ok": true
+  },
+  {
+   "step": "generic",
+   "name": "no sideways scrolling",
+   "detail": "1366 vs 1366",
+   "ok": true
+  },
+  {
+   "step": "generic",
+   "name": "no broken images",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "step": "generic",
+   "name": "tap targets not tiny (< 24 px)",
+   "detail": "0 small: ",
+   "ok": true
+  },
+  {
+   "step": "generic",
+   "name": "readable text (not under 12 px)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "step": "2-path",
+   "name": "\"fix\" and \"idea\" choices shown",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "record button shown",
+   "detail": "🎙️ Rather say it? Record a voice message Tap to start recording ",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "photo button says photos (not files)",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "photo picker asks for photos only",
+   "detail": "image/*",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "no visible text offers video",
+   "ok": true
+  },
+  {
+   "step": "3-problem",
+   "name": "browser can record voice in the page",
+   "detail": "function",
+   "ok": true
+  }
+ ],
+ "screenshots": [
+  "1-welcome.png",
+  "2-path.png",
+  "3-problem.png"
+ ],
+ "notes": [],
+ "finished": "2026-10-08T17:50:03.512Z"
+}
