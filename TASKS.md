@@ -4,8 +4,6 @@ Status: active
 
 ## Questions for me
 
-- Shelf-inventory (client's live app): a nightly test would be useful, but its address must not go into this public repo. Options: (a) a private copy of the lab (uses free private minutes, Mac costs extra), (b) run it from the laptop with Windows browsers only, (c) skip. Recommended: (b).
-- mymodernstay.com (your rental site): add a nightly check? It would publicly link the site to this lab (public repo). Recommended: only if you don't mind that.
 
 ## Now
 
