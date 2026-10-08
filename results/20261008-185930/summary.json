@@ -1,0 +1,113 @@
+{
+ "id": "20261008-185930",
+ "url": "https://automate-and-improve.github.io/",
+ "platforms": [
+  {
+   "platform": "windows-edge",
+   "label": "Windows Edge",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "windows-chrome",
+   "label": "Windows Chrome",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "windows-firefox",
+   "label": "Windows Firefox",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "windows-chrome-phone",
+   "label": "Windows Chrome, phone size",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "mac-safari",
+   "label": "macOS Safari",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "mac-webkit-iphone",
+   "label": "macOS WebKit as iPhone (interactive)",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": []
+  },
+  {
+   "platform": "ios-sim",
+   "label": "iPhone simulator (Mobile Safari) - iPhone 16 iOS-26-2",
+   "ok": 0,
+   "total": 0,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png"
+   ],
+   "notes": [
+    "screenshot only: Mobile Safari in the simulator can be looked at, not steered"
+   ]
+  },
+  {
+   "platform": "android",
+   "label": "Android emulator (Chrome)",
+   "ok": 13,
+   "total": 13,
+   "failed": [],
+   "screenshots": [
+    "1-welcome.png",
+    "2-path.png",
+    "3-problem.png"
+   ],
+   "notes": [
+    "tapped Chrome pop-up: No thanks"
+   ]
+  }
+ ],
+ "missing": []
+}
