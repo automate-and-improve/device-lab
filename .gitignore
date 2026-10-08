@@ -1,0 +1,4 @@
+# Secrets (safety-kit)
+.env
+.env.*
+!.env.example
