@@ -1,0 +1,16 @@
+{
+ "platform": "ios-sim",
+ "url": "https://automate-and-improve.github.io/",
+ "checks": "intake",
+ "started": "2026-10-09T04:45:05.246Z",
+ "label": "iPhone simulator (Mobile Safari) - iPhone 16 iOS-26-2",
+ "results": [],
+ "screenshots": [
+  "1-welcome.png"
+ ],
+ "notes": [
+  "screenshot only: Mobile Safari in the simulator can be looked at, not steered",
+  "Apple's driver could not steer the simulator (session not created: Could not create a session: The session timed out while connecting to a Safari instance. The following asynchronous operation timed out: Fi): screenshot only"
+ ],
+ "finished": "2026-10-09T04:53:46.515Z"
+}
