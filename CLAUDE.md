@@ -20,5 +20,6 @@ Plan, facts and sources: `../opportunity-lab/reports/2026-10-08-device-lab.md`.
 
 ## Key decisions
 
+- 2026-10-15: Nightly run opens the intake site with ?notrack so test visits don't count (answered via /questions on intake)
 - 2026-10-08: No lab checks for shelf-inventory (client app) or mymodernstay.com for now (user). Nightly = intake only.
 - 2026-10-08: Project created (user: "build it, move it to a project, we will use it often while developing"). Option A from the lab report: GitHub Actions, public repo in the org `automate-and-improve`, EUR 0/month.
