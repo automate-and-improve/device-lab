@@ -1,0 +1,18 @@
+{
+ "platform": "mac-safari",
+ "url": "https://automate-and-improve.github.io/?notrack",
+ "checks": "intake",
+ "started": "2026-10-19T10:08:29.602Z",
+ "label": "mac-safari",
+ "results": [
+  {
+   "step": "start",
+   "name": "platform started and page opened",
+   "ok": false,
+   "detail": "session not created: Could not create a session: The session timed out while connecting to a Safari instance. The following asynchronous operation timed out: Finding or launching a compatible local Safari and waiting for its RWIApplication to appear and become ready."
+  }
+ ],
+ "screenshots": [],
+ "notes": [],
+ "finished": "2026-10-19T10:09:01.384Z"
+}
