@@ -1,0 +1,22 @@
+{
+ "platform": "ios-sim",
+ "url": "https://automate-and-improve.github.io/?notrack",
+ "checks": "intake",
+ "started": "2026-10-30T10:59:05.659Z",
+ "label": "iPhone simulator (Mobile Safari) - iPhone 16 iOS-26-2",
+ "results": [
+  {
+   "step": "start",
+   "name": "platform started and page opened",
+   "ok": false,
+   "detail": "Command failed: xcrun simctl openurl 1CD403CB-B38F-447D-A90D-9985D4D2649C \"https://automate-and-improve.github.io/?notrack\"\nAn error was encountered processing the command (domain=NSPOSIXErrorDomain, code=60):\nSimulator device failed to open https://automate-and-improve.github.io/?notrack.\nOperation"
+  }
+ ],
+ "screenshots": [
+  "failed.png"
+ ],
+ "notes": [
+  "Apple's driver could not steer the simulator (session not created: Could not create a session: The session timed out while connecting to a Safari instance. The following asynchronous operation timed out: Fi): screenshot only"
+ ],
+ "finished": "2026-10-30T11:07:01.300Z"
+}
