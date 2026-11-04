@@ -1,0 +1,20 @@
+{
+ "platform": "android",
+ "url": "https://automate-and-improve.github.io/?notrack",
+ "checks": "intake",
+ "started": "2026-11-04T12:24:58.270Z",
+ "label": "Android emulator (Chrome)",
+ "results": [
+  {
+   "step": "start",
+   "name": "platform started and page opened",
+   "ok": false,
+   "detail": "Chrome page not found over DevTools (open pages: chrome-native://newtab/)"
+  }
+ ],
+ "screenshots": [
+  "failed.png"
+ ],
+ "notes": [],
+ "finished": "2026-11-04T12:26:09.662Z"
+}
