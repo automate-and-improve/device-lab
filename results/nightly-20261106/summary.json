@@ -1,0 +1,127 @@
+{
+ "id": "nightly-20261106",
+ "targets": [
+  {
+   "target": "intake",
+   "url": "https://automate-and-improve.github.io/?notrack",
+   "platforms": [
+    {
+     "platform": "windows-edge",
+     "label": "Windows Edge",
+     "ok": 13,
+     "total": 13,
+     "failed": [],
+     "screenshots": [
+      "1-welcome.png",
+      "2-path.png",
+      "3-problem.png"
+     ],
+     "notes": []
+    },
+    {
+     "platform": "windows-chrome",
+     "label": "Windows Chrome",
+     "ok": 13,
+     "total": 13,
+     "failed": [],
+     "screenshots": [
+      "1-welcome.png",
+      "2-path.png",
+      "3-problem.png"
+     ],
+     "notes": []
+    },
+    {
+     "platform": "windows-firefox",
+     "label": "Windows Firefox",
+     "ok": 13,
+     "total": 13,
+     "failed": [],
+     "screenshots": [
+      "1-welcome.png",
+      "2-path.png",
+      "3-problem.png"
+     ],
+     "notes": []
+    },
+    {
+     "platform": "windows-chrome-phone",
+     "label": "Windows Chrome, phone size",
+     "ok": 13,
+     "total": 13,
+     "failed": [],
+     "screenshots": [
+      "1-welcome.png",
+      "2-path.png",
+      "3-problem.png"
+     ],
+     "notes": []
+    },
+    {
+     "platform": "mac-safari",
+     "label": "macOS Safari",
+     "ok": 13,
+     "total": 13,
+     "failed": [],
+     "screenshots": [
+      "1-welcome.png",
+      "2-path.png",
+      "3-problem.png"
+     ],
+     "notes": []
+    },
+    {
+     "platform": "mac-webkit-iphone",
+     "label": "macOS WebKit as iPhone (interactive)",
+     "ok": 13,
+     "total": 13,
+     "failed": [],
+     "screenshots": [
+      "1-welcome.png",
+      "2-path.png",
+      "3-problem.png"
+     ],
+     "notes": []
+    },
+    {
+     "platform": "ios-sim",
+     "label": "iPhone simulator (Mobile Safari) - iPhone 16 iOS-26-2",
+     "ok": 0,
+     "total": 1,
+     "failed": [
+      {
+       "step": "start",
+       "name": "platform started and page opened",
+       "ok": false,
+       "detail": "Command failed: xcrun simctl openurl 309F4F0C-F632-4F5C-BB25-BD783E57455C \"https://automate-and-improve.github.io/?notrack\"\nAn error was encountered processing the command (domain=NSPOSIXErrorDomain, code=60):\nSimulator device failed to open https://automate-and-improve.github.io/?notrack.\nOperation"
+      }
+     ],
+     "screenshots": [
+      "failed.png"
+     ],
+     "notes": [
+      "Apple's driver could not steer the simulator (session not created: Could not create a session: The session timed out while connecting to a Safari instance. The following asynchronous operation timed out: Fi): screenshot only"
+     ]
+    },
+    {
+     "platform": "android",
+     "label": "Android emulator (Chrome)",
+     "ok": 0,
+     "total": 1,
+     "failed": [
+      {
+       "step": "start",
+       "name": "emulator booted",
+       "ok": false,
+       "detail": "kvm: crw-rw-rw- 1 root kvm 10, 232 Nov  6 12:21 /dev/kvm / 12:21:10 downloading system image / 12:21:51 download exit 0 / KVM (version 12) is installed and usable. / 12:21:52 phones: lab  / 12:21:52 emulator started / 12:23:52 device visible: exit 0 / 12:28:53 booted=0"
+      }
+     ],
+     "screenshots": [],
+     "notes": []
+    }
+   ],
+   "missing": []
+  }
+ ],
+ "failed": 2
+}
