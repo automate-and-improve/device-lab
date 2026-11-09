@@ -1,0 +1,18 @@
+{
+ "platform": "ios-sim",
+ "url": "https://automate-and-improve.github.io/?notrack",
+ "checks": "intake",
+ "started": "2026-11-09T13:13:50.614Z",
+ "label": "ios-sim",
+ "results": [
+  {
+   "step": "start",
+   "name": "platform started and page opened",
+   "ok": false,
+   "detail": "spawnSync /bin/sh ETIMEDOUT"
+  }
+ ],
+ "screenshots": [],
+ "notes": [],
+ "finished": "2026-11-09T13:25:07.561Z"
+}
